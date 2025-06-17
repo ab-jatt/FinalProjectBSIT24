@@ -3,15 +3,14 @@
 #include <string.h>
 
 #define MAX_USERS 3
+#define MAX_LENGTH 20
 
-struct account {
-    char name[20];
-    int pin;
-    float balance;
-};
+char names[MAX_USERS][MAX_LENGTH] = {"john", "jane", "abdullah"};
+int pins[MAX_USERS] = {1111, 2222, 1234};
+float balances[MAX_USERS] = {1000.0, 1500.0, 2000.0};
 
 void clear_screen() {
-    system("cls"); // for Windows, use "clear" on Linux/Mac
+    system("cls"); 
 }
 
 void print_line() {
@@ -31,12 +30,12 @@ void show_menu() {
     printf("Enter your choice: ");
 }
 
-int login(struct account users[], int *index) {
-    char entered_name[20];
+int login(int *user_index) {
+    char entered_name[MAX_LENGTH];
     int entered_pin;
     int tries = 3;
 
-    while (tries--) {
+    while (tries > 0) {
         clear_screen();
         print_line();
         printf("           ATM LOGIN\n");
@@ -47,58 +46,59 @@ int login(struct account users[], int *index) {
         scanf("%d", &entered_pin);
 
         for (int i = 0; i < MAX_USERS; i++) {
-            if (strcmp(users[i].name, entered_name) == 0 && users[i].pin == entered_pin) {
-                *index = i;
-                return 1; // login success
+            if (strcmp(names[i], entered_name) == 0 && pins[i] == entered_pin) {
+                *user_index = i;
+                return 1;
             }
         }
 
-        printf("Wrong username or PIN. Tries left: %d\n", tries);
+        printf("Incorrect username or PIN. Tries left: %d\n", tries - 1);
+        tries--;
         system("pause");
     }
 
-    return 0; // login failed
+    return 0;
 }
 
-void check_balance(struct account *user) {
-    printf("Your current balance is: %.2f\n", user->balance);
+void check_balance(int index) {
+    printf("Your current balance is: %.2f\n", balances[index]);
 }
 
-void deposit_money(struct account *user) {
+void deposit_money(int index) {
     float amount;
     printf("Enter amount to deposit: ");
     scanf("%f", &amount);
 
     if (amount > 0) {
-        user->balance += amount;
+        balances[index] += amount;
         printf("Amount deposited successfully.\n");
     } else {
         printf("Invalid amount.\n");
     }
 }
 
-void withdraw_money(struct account *user) {
+void withdraw_money(int index) {
     float amount;
     printf("Enter amount to withdraw: ");
     scanf("%f", &amount);
 
-    if (amount > 0 && amount <= user->balance) {
-        user->balance -= amount;
+    if (amount > 0 && amount <= balances[index]) {
+        balances[index] -= amount;
         printf("Please collect your cash.\n");
     } else {
         printf("Invalid or insufficient balance.\n");
     }
 }
 
-void change_pin(struct account *user) {
+void change_pin(int index) {
     int old_pin, new_pin;
     printf("Enter current PIN: ");
     scanf("%d", &old_pin);
 
-    if (old_pin == user->pin) {
+    if (old_pin == pins[index]) {
         printf("Enter new PIN: ");
         scanf("%d", &new_pin);
-        user->pin = new_pin;
+        pins[index] = new_pin;
         printf("PIN changed successfully.\n");
     } else {
         printf("Incorrect current PIN. Cannot change.\n");
@@ -106,15 +106,9 @@ void change_pin(struct account *user) {
 }
 
 int main() {
-    struct account users[MAX_USERS] = {
-        {"john", 1111, 1000.0},
-        {"jane", 2222, 1500.0},
-        {"abdullah", 1234, 2000.0}
-    };
-
     int user_index;
 
-    if (!login(users, &user_index)) {
+    if (!login(&user_index)) {
         printf("Too many failed attempts. Exiting.\n");
         return 0;
     }
@@ -126,24 +120,18 @@ int main() {
         scanf("%d", &choice);
         clear_screen();
 
-        switch (choice) {
-            case 1:
-                check_balance(&users[user_index]);
-                break;
-            case 2:
-                deposit_money(&users[user_index]);
-                break;
-            case 3:
-                withdraw_money(&users[user_index]);
-                break;
-            case 4:
-                change_pin(&users[user_index]);
-                break;
-            case 5:
-                printf("Thank you for using our ATM.\n");
-                break;
-            default:
-                printf("Invalid choice. Try again.\n");
+        if (choice == 1) {
+            check_balance(user_index);
+        } else if (choice == 2) {
+            deposit_money(user_index);
+        } else if (choice == 3) {
+            withdraw_money(user_index);
+        } else if (choice == 4) {
+            change_pin(user_index);
+        } else if (choice == 5) {
+            printf("Thank you for using our ATM.\n");
+        } else {
+            printf("Invalid choice. Try again.\n");
         }
 
         if (choice != 5) {
